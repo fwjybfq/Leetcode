@@ -1,0 +1,357 @@
+Given a binary tree, determine if it is a valid binary search tree (BST).
+
+Assume a BST is defined as follows:
+
+The left subtree of a node contains only nodes with keys less than the node's key.
+The right subtree of a node contains only nodes with keys greater than the node's key.
+Both the left and right subtrees must also be binary search trees.
+confused what "{1,#,2,3}" means? > read more on how binary tree is serialized on OJ.
+
+
+OJ's Binary Tree Serialization:
+The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.
+
+Here's an example:
+
+   1
+  / \
+ 2   3
+    /
+   4
+    \
+     5
+The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}".
+
+
+【解题思路】
+一开始陷入了各种case下，思路不够清晰，所以写出来的代码会遗漏各种case
+public boolean isValidBST(TreeNode root) {
+
+        if (root == null) return true;
+        if (root.left==null && root.right==null ) return true;
+        if ((root.left!=null && (root.right==null)) && (root.left.val < root.val) && isValidBST(root.left)) return true;
+        if ((root.right!=null && (root.left==null)) && (root.right.val > root.val) && isValidBST(root.right)) return true;
+        if (root.right.left !=null && root.val > root.right.left.val) return false;
+        if ( root.left!=null && root.right!=null && root.left.val < root.val && root.right.val > root.val
+            && isValidBST(root.left) && isValidBST(root.right)) return true;
+        return false;
+    }
+
+
+
+
+正确的思路：
+对于每一个子树，限制它的最大，最小值，如果超过则返回false。
+对于根节点，最大最小都不限制；
+每一层节点，左子树限制最大值小于根，右子树最小值大于根；
+但是比较有趣的是，在递归的过程中还得不断带入祖父节点的值。
+
+或者，中序遍历该树，然后扫描一遍看是否递增。
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+public class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return isValidBSTCheck(root, -2147483648, 2147483647);
+    }
+
+    public boolean isValidBSTCheck(TreeNode root, int MIN, int MAX){
+        if(root == null ) return true;
+        if (root.val > MIN
+        && root.val < MAX
+        && isValidBSTCheck(root.left, MIN, root.val)
+        && isValidBSTCheck(root.right, root.val, MAX)) return true;
+        else return false;
+    }
+}
+
+
+但是上面的code，有很多边界的case不通过，比如
+[1,1],
+[2147483647 ],
+[-2147483648,-2147483648],
+[2147483647 ,2147483647 ]
+
+下面的写法还是错的，遗漏case
+public class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return isValidBSTCheck(root, -2147483648, 2147483647);
+    }
+
+    public boolean isValidBSTCheck(TreeNode root, int MIN, int MAX){
+        int min = MIN;
+        int max = MAX;
+        if(root == null ) return true;
+        if (root.left ==null && root.right ==null
+        && root.val<=max && root.val >=min ) return true;
+        if ((root.left!=null && root.val == root.left.val)
+        || (root.right!=null && root.val == root.right.val)) return false;
+        if (root.val > min
+        && root.val < max
+        && isValidBSTCheck(root.left, min, root.val)
+        && isValidBSTCheck(root.right, root.val, max)) return true;
+        else return false;
+    }
+}
+
+
+正确的写法：
+public class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return isValidBST(root, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);   
+    }
+
+    public boolean isValidBST(TreeNode p, double min, double max){
+        if(p==null)
+            return true;
+
+        if(p.val <= min || p.val >= max)             // 重点是判断错误的case，这样更合理
+            return false;
+
+        return isValidBST(p.left, min, p.val) && isValidBST(p.right, p.val, max);
+    }
+}
+Java Solution 2 - Iterative
+
+public class Solution {
+    public boolean isValidBST(TreeNode root) {
+        if(root == null)
+            return true;
+ 
+        LinkedList<BNode> queue = new LinkedList<BNode>();
+        queue.add(new BNode(root, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
+        while(!queue.isEmpty()){
+            BNode b = queue.poll();
+            if(b.n.val <= b.left || b.n.val >=b.right){
+                return false;
+            }
+            if(b.n.left!=null){
+                queue.offer(new BNode(b.n.left, b.left, b.n.val));
+            }
+            if(b.n.right!=null){
+                queue.offer(new BNode(b.n.right, b.n.val, b.right));
+            }
+        }
+        return true;
+    }}//define a BNode class with TreeNode and it's boundariesclass BNode{
+    TreeNode n;
+    double left;
+    double right;
+    public BNode(TreeNode n, double left, double right){
+        this.n = n;
+        this.left = left;
+        this.right = right;
+    }}
+
+
+中序遍历 解法
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+class Solution {
+public:
+    bool isValidBST(TreeNode *root) {
+        int curMax = INT_MIN;
+        return validateBST(root, curMax);
+    }
+   
+    bool validateBST(TreeNode *root, int &curMax) {
+        if(!root) return true;
+        if(!validateBST(root->left, curMax)) return false;
+        if(curMax >= root->val) return false;
+        curMax = root->val;
+        return validateBST(root->right, curMax);
+    }
+};
+
+
+
+SOLUTION 1:
+
+使用Iterator 中序遍历的方法，判断整个数列是否保持增序即可。
+
+算法思想：
+
+http://www.cnblogs.com/shuaiwhu/archive/2011/04/20/2065055.html
+
+1.采用栈的话，先寻找最左边的节点，把经过的节点都存入栈中，第一个被弹出来的为最左节点，那么访问其右子树，对右子树也像前面一样遍历，整个流程跟递归一样。
+
+
+
+
+ 1 public boolean isValidBST1(TreeNode root) {
+ 2         // Just use the inOrder traversal to solve the problem. 3         if (root == null) {
+ 4             return true;
+ 5         }
+ 6         
+ 7         Stack<TreeNode> s = new Stack<TreeNode>();
+ 8         TreeNode cur = root;
+ 9         
+10         TreeNode pre = null;
+11         
+12         while(true) {
+13             // Push all the left node into the stack.14             while (cur != null) {
+15                 s.push(cur);
+16                 cur = cur.left;
+17             }
+18             
+19             if (s.isEmpty()) {
+20                 break;
+21             }
+22             
+23             // No left node, just deal with the current node.24             cur = s.pop();
+25             
+26             if (pre != null && pre.val >= cur.val) {
+27                 return false;
+28             }
+29             
+30             pre = cur;
+31             
+32             // Go to the right node.33             cur = cur.right;
+34         }
+35         
+36         return true;
+37     }
+
+SOLUTION 2:
+
+引自大神的思想：http://blog.csdn.net/fightforyourdream/article/details/14444883
+
+我们可以设置上下bound，递归左右子树时，为它们设置最大值，最小值，并且不可以超过。
+
+注意：下一层递归时，需要把本层的up 或是down继续传递下去。相当巧妙的算法。
+
+
+
+ 1 /* 2         SOLUTION 2: Use the recursive version.
+ 3         REF: http://blog.csdn.net/fightforyourdream/article/details/14444883 4     */ 5     public boolean isValidBST2(TreeNode root) {
+ 6         // Just use the inOrder traversal to solve the problem. 7         if (root == null) {
+ 8             return true;
+ 9         }
+10         
+11         return dfs(root, Long.MIN_VALUE, Long.MAX_VALUE);
+12     }
+13     
+14     public boolean dfs(TreeNode root, long low, long up) {
+15         if (root == null) {
+16             return true;
+17         }
+18         
+19         if (root.val >= up || root.val <= low) {
+20             return false;
+21         }
+22         
+23         return dfs(root.left, low, root.val) 
+24            && dfs(root.right, root.val, up);
+25     }
+
+SOLUTION 3:
+
+同样是递归，但是把左右子树的min, max值返回，与当前的root值相比较。比较直观。
+
+
+
+ 1 /* 2         SOLUTION 3: Use the recursive version2.
+ 3     */ 4     public boolean isValidBST3(TreeNode root) {
+ 5         // Just use the inOrder traversal to solve the problem. 6         if (root == null) {
+ 7             return true;
+ 8         }
+ 9         
+10         return dfs(root, Long.MIN_VALUE, Long.MAX_VALUE);
+11     }
+12     
+13     public class ReturnType {
+14         int min;
+15         int max;
+16         boolean isBST;
+17         public ReturnType (int min, int max, boolean isBST) {
+18             this.min = min;
+19             this.max = max;
+20             this.isBST = isBST;
+21         }
+22     }
+23     
+24     // BST:
+25     // 1. Left tree is BST;
+26     // 2. Right tree is BST;
+27     // 3. root value is bigger than the max value of left tree and 
+28     // smaller than the min value of the right tree.29     public ReturnType dfs(TreeNode root) {
+30         ReturnType ret = new ReturnType(Integer.MAX_VALUE, Integer.MIN_VALUE, true);
+31         if (root == null) {
+32             return ret;
+33         }
+34         
+35         ReturnType left = dfs(root.left);
+36         ReturnType right = dfs(root.right);
+37         
+38         // determine the left tree and the right tree;39         if (!left.isBST || !right.isBST) {
+40             ret.isBST = false;
+41             return ret;
+42         }
+43         
+44         // 判断Root.left != null是有必要的，如果root.val是MAX 或是MIN value,判断会失误45         if (root.left != null && root.val <= left.max) {
+46             ret.isBST = false;
+47             return ret;
+48         }
+49         
+50         if (root.right != null && root.val >= right.min) {
+51             ret.isBST = false;
+52             return ret;
+53         }
+54         
+55         return new ReturnType(Math.min(root.val, left.min), Math.max(root.val, right.max), true);
+56     }
+
+SOLUTION 4:
+
+使用一个全局变量，用递归的中序遍历来做，也很简单（但全局变量主页君不推荐！）
+
+
+
+ 1 /* 2         SOLUTION 4: Use the recursive version3.
+ 3     */ 4     TreeNode pre = null;
+ 5     
+ 6     public boolean isValidBST(TreeNode root) {
+ 7         // Just use the inOrder traversal to solve the problem. 8         return dfs4(root);
+ 9     }
+10     
+11     public boolean dfs4(TreeNode root) {
+12         if (root == null) {
+13             return true;
+14         }
+15         
+16         // Judge the left tree.17         if (!dfs4(root.left)) {
+18             return false;
+19         }
+20         
+21         // judge the sequence.22         if (pre != null && root.val <= pre.val) {
+23             return false;
+24         }
+25         pre = root;
+26         
+27         // Judge the right tree.28         if (!dfs4(root.right)) {
+29             return false;
+30         }
+31         
+32         return true;
+33     }
+

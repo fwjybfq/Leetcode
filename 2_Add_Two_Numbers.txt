@@ -1,0 +1,89 @@
+You are given two linked lists representing two non-negative numbers. The digits are stored in reverse order and each of their nodes contain a single digit. Add the two numbers and return it as a linked list.
+Input: (2 -> 4 -> 3) + (5 -> 6 -> 4)
+Output: 7 -> 0 -> 8
+/**
+* Definition for singly-linked list.
+* struct ListNode {
+*     int val;
+*     struct ListNode *next;
+* };
+*/
+struct ListNode* addTwoNumbers(struct ListNode* l1, struct ListNode* l2) {
+   
+}
+
+
+【解题报告】
+先计算出l1和l2的长度，然后以长的链表作为结果链表，需要处理好进位
+c：
+struct ListNode* addTwoNumbers(struct ListNode* l1, struct ListNode* l2){
+     struct ListNode *p1, *p2, *p3, *p4;
+     int carry = 0;
+     int tmp;
+     int len1=0,len2=0;
+     if (l1 == NULL) return l2;
+     if (l2 == NULL) return l1;
+     p1 = l1;
+     p2 = l2;
+    
+     // calculate the length of l1 and l2
+     while (p1) {    
+          len1++;
+          p1 = p1->next;
+     }
+     while (p2) {
+          len2++;
+          p2 = p2->next;
+     }
+     p1 = l1;
+     p2 = l2;    
+     if (len1<len2){
+          while(p1) {
+               tmp = p1->val + p2->val + carry;
+               carry = tmp / 10;
+               tmp = tmp % 10;
+               p2->val = tmp;
+               p3 = p2;
+               p1 = p1->next;
+               p2 = p2->next;         
+          }
+          while (p3->next && carry) {//p3 isn't the last node and carry is not 0
+               p3 = p3->next;
+               tmp = p3->val + carry;
+               carry = tmp / 10;
+               tmp = tmp % 10;
+               p3->val = tmp;
+          }
+          if (!p3->next && carry) { //p3 is the last node and has carry
+               p4 = (struct ListNode*)malloc (sizeof(struct ListNode));
+               p4->val = carry;
+               p4->next = NULL;
+               p3->next = p4;              
+          }              
+          return l2;
+     } else { // len1 >= len2
+          while(p2) {
+               tmp = p1->val + p2->val + carry;
+               carry = tmp / 10;
+               tmp = tmp % 10;
+               p1->val = tmp;
+               p3 = p1;
+               p1 = p1->next;
+               p2 = p2->next;         
+          }
+          while (p3->next && carry) {
+              p3 = p3->next;
+               tmp = p3->val + carry;
+               carry = tmp / 10;
+               tmp = tmp % 10;
+               p3->val = tmp;
+          }
+          if (!p3->next && carry) {
+               p4 = (struct ListNode*)malloc (sizeof(struct ListNode));
+               p4->val = carry;
+               p4->next = NULL;
+               p3->next = p4;              
+          }              
+          return l1;         
+     }
+}

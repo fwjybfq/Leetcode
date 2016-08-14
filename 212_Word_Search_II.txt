@@ -1,0 +1,180 @@
+Given a 2D board and a list of words from the dictionary, find all words in the board.
+Each word must be constructed from letters of sequentially adjacent cell, where "adjacent" cells are those horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.
+For example,
+Given words = ["oath","pea","eat","rain"] and board =
+[
+  ['o','a','a','n'],
+  ['e','t','a','e'],
+  ['i','h','k','r'],
+  ['i','f','l','v']
+]
+
+Return ["eat","oath"].
+Note:
+You may assume that all inputs are consist of lowercase letters a-z.
+
+
+public class Solution {
+    public List<String> findWords(char[][] board, String[] words) {
+
+    }
+}
+
+Java Solution 1
+Similar to Word Search, this problem can be solved by DFS. However, this solution exceeds time limit.
+public List<String> findWords(char[][] board, String[] words) {
+        ArrayList<String> result = new ArrayList<String>();
+ 
+        int m = board.length;
+        int n = board[0].length;
+ 
+        for (String word : words) {
+                boolean flag = false;
+                for (int i = 0; i < m; i++) {
+                        for (int j = 0; j < n; j++) {
+                                char[][] newBoard = new char[m][n];
+                                for (int x = 0; x < m; x++)
+                                        for (int y = 0; y < n; y++)
+                                                newBoard[x][y] = board[x][y];     //重新复制一个board，是因为该方法会破坏原数组
+ 
+                                if (dfs(newBoard, word, i, j, 0)) {
+                                        flag = true;
+                                }
+                        }
+                }
+                if (flag) {
+                        result.add(word);
+                }
+        }
+ 
+        return result;}
+ 
+public boolean dfs(char[][] board, String word, int i, int j, int k) {
+        int m = board.length;
+        int n = board[0].length;
+ 
+        if (i < 0 || j < 0 || i >= m || j >= n || k > word.length() - 1) {
+                return false;
+        }
+ 
+        if (board[i][j] == word.charAt(k)) {
+                char temp = board[i][j];
+                board[i][j] = '#';
+ 
+                if (k == word.length() - 1) {
+                        return true;
+                } else if (dfs(board, word, i - 1, j, k + 1)
+                                || dfs(board, word, i + 1, j, k + 1)
+                                || dfs(board, word, i, j - 1, k + 1)
+                                || dfs(board, word, i, j + 1, k + 1)) {
+                        board[i][j] = temp;
+                        return true;
+                }
+ 
+        } else {
+                return false;
+        }
+ 
+        return false;
+}
+
+
+
+Java Solution 2 - Trie
+If the current candidate does not exist in all words' prefix, we can stop backtracking immediately. This can be done by using a trie structure.
+public class Solution {
+    Set<String> result = new HashSet<String>(); 
+ 
+    public List<String> findWords(char[][] board, String[] words) {
+        //HashSet<String> result = new HashSet<String>();
+ 
+        Trie trie = new Trie();
+        for(String word: words){
+            trie.insert(word);
+        }
+ 
+        int m=board.length;
+        int n=board[0].length;
+ 
+        boolean[][] visited = new boolean[m][n];
+ 
+        for(int i=0; i<m; i++){
+            for(int j=0; j<n; j++){
+               dfs(board, visited, "", i, j, trie);
+            }
+        }
+ 
+        return new ArrayList<String>(result);
+    }
+ 
+    public void dfs(char[][] board, boolean[][] visited, String str, int i, int j, Trie trie){
+        int m=board.length;
+        int n=board[0].length;
+ 
+        if(i<0 || j<0||i>=m||j>=n){
+            return;
+        }
+ 
+        if(visited[i][j])
+            return;
+ 
+        str = str + board[i][j];
+ 
+        if(!trie.startsWith(str))
+            return;
+ 
+        if(trie.search(str)){
+            result.add(str);
+        }
+ 
+        visited[i][j]=true;
+        dfs(board, visited, str, i-1, j, trie);
+        dfs(board, visited, str, i+1, j, trie);
+        dfs(board, visited, str, i, j-1, trie);
+        dfs(board, visited, str, i, j+1, trie);
+        visited[i][j]=false;
+    }
+}
+
+//Trie Nodeclass TrieNode{
+    public TrieNode[] children = new TrieNode[26];
+    public String item = "";}
+ 
+//Trieclass Trie{
+    public TrieNode root = new TrieNode();
+ 
+    public void insert(String word){
+        TrieNode node = root;
+        for(char c: word.toCharArray()){
+            if(node.children[c-'a']==null){
+                node.children[c-'a']= new TrieNode();
+            }
+            node = node.children[c-'a'];
+        }
+        node.item = word;
+    }
+ 
+    public boolean search(String word){
+        TrieNode node = root;
+        for(char c: word.toCharArray()){
+            if(node.children[c-'a']==null)
+                return false;
+            node = node.children[c-'a'];
+        }
+        if(node.item.equals(word)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+ 
+    public boolean startsWith(String prefix){
+        TrieNode node = root;
+        for(char c: prefix.toCharArray()){
+            if(node.children[c-'a']==null)
+                return false;
+            node = node.children[c-'a'];
+        }
+        return true;
+    }
+}

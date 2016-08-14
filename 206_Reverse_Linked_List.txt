@@ -1,0 +1,114 @@
+Reverse Linked List
+Reverse a singly linked list.
+click to show more hints.
+Hint:
+
+A linked list can be reversed either iteratively or recursively. Could you implement both?
+【leetcode给的链表都不带头结点】
+【my solution 1】
+重点是循环条件的判断
+/**
+* Definition for singly-linked list.
+* struct ListNode {
+*     int val;
+*     struct ListNode *next;
+* };
+*/
+【我的做法是原地反转，最后返回最后一个结点】
+1->2->3->4->5 ==>  1<-2<-3<-4<-5
+非递归算法
+struct ListNode* reverseList(struct ListNode* head) {
+    struct ListNode* pre , *cur, *post;
+    if (head == NULL || head->next == NULL)  return head;
+    pre = head;
+    cur = head->next;
+    post = head->next->next;
+    pre->next = NULL;
+    while (post) {
+         cur->next = pre;
+         pre = cur;
+         cur = post;
+         post = post->next;
+     }
+    
+     cur->next = pre;
+     return cur;
+}
+
+[my solution 2 ] 
+递归实现
+
+/**
+* Definition for singly-linked list.
+* struct ListNode {
+*     int val;
+*     struct ListNode *next;
+* };
+*/
+struct ListNode* dummy;
+struct ListNode* ReverseListRecur(struct ListNode* head) {
+    struct ListNode* p1 , *p2;
+    p1 = head;
+    if (head == NULL || head->next == NULL) {
+         dummy->next = p1;
+     } else {
+          p2 = ReverseListRecur(p1->next);
+          p2->next = p1;
+     }
+     return p1;
+}
+struct ListNode* reverseList(struct ListNode* head) {
+    struct ListNode* p;
+    dummy = (struct ListNode*)malloc(sizeof(struct ListNode));
+     if (head == NULL || head->next == NULL) return head;
+     p = ReverseListRecur(head);
+     p->next = NULL;
+     return dummy->next;
+}
+
+
+----------------------------------
+【别人的solution】
+
+非递归实现很简单，只需要遍历一遍链表，在遍历过程中，把遍历的节点一次插入到头部。在这个过程之后，第一个节点成了最后节点，因此要特殊处理，改其后继为NULL。【注，这里传入的head是头结点】
+该方法示意图    
+head->1->2->3->4   ==>   head->2->1 ... 3->4        ==> head->3->2->1 ... 4      ==> head->4->3->3->1                                                  
+
+void Inversion(ListNode* Head)
+{
+     ListNode *current,*tmp;
+     current=Head->next;
+     if(current!=NULL)//反转后第一个节点的后继要为NULL
+     {
+          tmp=current;
+          current=current->next;
+          tmp->next=NULL;
+     }
+    
+     while(current!=NULL)
+     {
+          tmp=current;
+          current=current->next;
+          tmp->next=Head->next;
+          Head->next=tmp;
+     }
+}
+
+在递归算法中的做法是：
+1找到最后一个节点和倒数第二个节点，把最后一个节点设为头节点的后继
+2反转这两个节点
+3倒数第三个和第四个节点重复执行步骤2
+其中注意，链表是以节点后继为NULL结束的，在更改指针的过程中要把改后的节点后继改为NULL
+
+代码如下：【注，这里传入的head是头结点】
+void Inversion_Recursion(ListNode* p,ListNode* Head)
+{
+     if(p->next==NULL)
+     {
+          Head->next=p;
+          return;//找到最后一个节点
+     }
+     Inversion_Recursion(p->next,Head);
+     p->next->next=p;//反转节点
+     p->next=NULL;//第一个节点反转后其后继应该为NULL
+}

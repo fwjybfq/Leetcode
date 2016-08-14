@@ -1,0 +1,108 @@
+Sort a linked list in O(n log n) time using constant space complexity.
+
+/**
+* Definition for singly-linked list.
+* struct ListNode {
+*     int val;
+*     struct ListNode *next;
+* };
+*/
+struct ListNode* sortList(struct ListNode* head) {
+   
+}
+
+
+【my solution】:
+/**
+* Definition for singly-linked list.
+* struct ListNode {
+*     int val;
+*     struct ListNode *next;
+* };
+*/
+
+Status:
+Time Limit Exceeded
+
+
+注解：运用的插入排序，但是时间超时
+q curr 记录当前待比较结点，q为curr的前驱
+           pre，p从头遍历，pre为p的前驱
+struct ListNode* sortList(struct ListNode* head) {
+    struct ListNode du = {};
+     struct ListNode* dummy = &du;
+    //struct ListNode* dummy = (ListNode*)malloc(sizeof (struct ListNode));
+    dummy->next = head;
+    struct ListNode *pre,*cur,*p,*q;
+    pre = q = q = dummy;
+    cur = head;
+    if (head == NULL || head->next == NULL) return head;
+    while (cur) {
+        pre = dummy;
+        p = pre->next;
+        while (p->val < cur->val && p != cur) {
+            pre = p;
+            p = p->next;
+        }
+        if (p == cur) {
+            q = cur;
+            cur = cur->next;
+        } else {
+            pre->next = cur;
+            q->next = cur->next;
+            cur->next = p;
+            cur = q->next;
+        }
+    }
+    return dummy->next;
+}
+
+
+[solution 2] 
+归并排序
+/**
+* Definition for singly-linked list.
+* struct ListNode {
+*     int val;
+*     struct ListNode *next;
+* };
+*/
+
+struct ListNode* Merge(struct ListNode* a, struct ListNode* b){
+     struct ListNode dummy = {};
+     struct ListNode* pa = a, *pb = b, *pc=&dummy;
+     dummy.next = NULL;
+     while (pa!=NULL && pb!= NULL){
+          if (pa->val <= pb->val){
+               pc->next = pa;
+               pa = pa->next;
+          } else {
+               pc->next = pb;
+               pb = pb->next;
+          }
+          pc = pc->next;
+     }
+    
+     pc->next= !pa ? pb : pa;
+     return dummy.next;
+}
+
+struct ListNode* GetMiddleofList(struct ListNode* head){
+     struct ListNode* slow, *fast;
+     slow = fast = head;
+     while (fast->next!=NULL && fast->next->next!= NULL ){    //注意终止条件的判断，容易出错
+          slow = slow->next;
+          fast = fast->next->next;
+     }
+     return slow;
+}
+
+struct ListNode* sortList(struct ListNode* head) {
+    struct ListNode* middle;
+    struct ListNode* right;
+    if (head == NULL || head->next == NULL) return head;
+     middle = GetMiddleofList(head);
+     right = middle->next;
+     middle->next = NULL;
+     return Merge(sortList(head),sortList(right));
+}

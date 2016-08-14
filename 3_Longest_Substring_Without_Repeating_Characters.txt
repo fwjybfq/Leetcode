@@ -1,0 +1,247 @@
+Given a string, find the length of the longest substring without repeating characters. For example, the longest substring without repeating letters for "abcabcbb" is "abc", which the length is 3. For "bbbbb" the longest substring is "b", with the length of 1.     
+int lengthOfLongestSubstring(char* s) {
+   
+}
+
+
+
+
+Longest Substring Without Repeating Characters 
+AC Rate: 1774/7414
+My Submissions
+
+Given a string, find the length of the longest substring without repeating characters. For example, the longest substring without repeating letters for "abcabcbb" is "abc", which the length is 3. For "bbbbb" the longest substring is "b", with the length of 1.
+转自：http://blog.csdn.net/allen_fan_01/article/details/9034163
+基本算法使用Hash
+要求子串中的字符不能重复，判重问题首先想到的就是hash，寻找满足要求的子串，最直接的方法就是遍历每个字符起始的子串，辅助hash，寻求最长的不重复子串，由于要遍历每个子串故复杂度为O(n^2)，n为字符串的长度，辅助的空间为常数hash[256]。代码如下：
+
+
+	1. /* 最长不重复子串 设串不超过30 
+	2.  * 我们记为 LNRS 
+	3.  */  
+	4. int maxlen;  
+	5. int maxindex;  
+	6. void output(char * arr);  
+	7. /* LNRS 基本算法 hash */  
+	8. char visit[256];  
+	9. void LNRS_hash(char * arr, int size)  
+	10. {  
+	11.     for(int i = 0; i < size; ++i)  
+	12.     {  
+	13.         memset(visit,0,sizeof(visit));  
+	14.         visit[arr[i]] = 1;  
+	15.         for(int j = i+1; j < size; ++j)  
+	16.         {  
+	17.             if(visit[arr[j]] == 0)  
+	18.             {  
+	19.                 visit[arr[j]] = 1;  
+	20.             }else  
+	21.             {  
+	22.                 if(j-i > maxlen)  
+	23.                 {  
+	24.                     maxlen = j - i;  
+	25.                     maxindex = i;  
+	26.                 }  
+	27.                 break;  
+	28.             }  
+	29.         }  
+	30.     }  
+	31.     output(arr);  
+	32. }  
+
+
+
+DP方案
+前面刚刚讨论过最长递增子序列的问题，咋一想就觉得二者有点类似，何不向DP方面想一下，为什么说二者类似，在LIS问题中，对于当前的元素，要么是与前面的LIS构成新的最长递增子序列，要么就是与前面稍短的子序列构成新的子序列或单独构成新子序列；
+同理，对于最长不重复子串，某个当前的字符，如果它与前面的最长不重复子串中的字符没有重复，那么就可以以它为结尾构成新的最长子串；如果有重复，那么就与某个稍短的子串构成新的子串或者单独成一个新子串。
+举个例子：例如字符串“abcdeab”，第二个字符a之前的最长不重复子串是“abcde”，a与最长子串中的字符有重复，但是它与稍短的“bcde”串没有重复，于是它可以与其构成一个新的子串，之前的最长不重复子串“abcde”结束；
+再看一个例子：字符串“abcb”，跟前面类似，最长串“abc”结束，第二个字符b与稍短的串“c”构成新的串；
+这两个例子，可以看出些眉目：当一个最长子串结束时（即遇到重复的字符），新的子串的长度是与（第一个重复的字符）的下标有关的。
+于是类似LIS，对于每个当前的元素，我们“回头”去查询是否有与之重复的，如没有，则最长不重复子串长度+1，如有，则是与第一个重复的字符之后的串构成新的最长不重复子串，新串的长度便是当前元素下标与重复元素下标之差。
+于是我们得到O(N^2)的DP方案，我们可以与LIS的DP方案进行对比，是一个道理的。代码如下：
+
+
+	1. /* LNRS dp */  
+	2. int dp[30];  
+	3. void LNRS_dp(char * arr, int size)  
+	4. {  
+	5.     int i, j;  
+	6.     maxlen = maxindex = 0;  
+	7.     dp[0] = 1;  
+	8.     for(i = 1; i < size; ++i)  
+	9.     {  
+	10.         for(j = i-1; j >= 0; --j)  
+	11.         {  
+	12.             if(arr[j] == arr[i])  
+	13.             {  
+	14.                 dp[i] = i - j;  
+	15.                 break;  
+	16.             }  
+	17.         }  
+	18.         if(j == -1)  
+	19.         {  
+	20.             dp[i] = dp[i-1] + 1;  
+	21.         }  
+	22.         if(dp[i] > maxlen)  
+	23.         {  
+	24.             maxlen = dp[i];  
+	25.             maxindex = i + 1 - maxlen;  
+	26.         }  
+	27.     }  
+	28.     output(arr);  
+	29. }  
+
+
+
+DP + Hash方案
+上面的DP方案是O(n^2)的，之所以是n^2，是因为“回头”去寻找重复元素的位置 了，受启发于最初的Hash思路，我们可以用hash记录元素是否出现过，我们当然也可以用hash记录元素出现过的下标，既然这样，在DP方案中，我们 何不hash记录重复元素的位置，这样就不必“回头”了，而时间复杂度必然降为O(N)，只不过需要一个辅助的常数空间visit[256]，典型的空间换时间。
+代码如下：这样遍历一遍便可以找到最长不重复子串
+
+
+	1. /* LNRS dp + hash 记录下标 */  
+	2. void LNRS_dp_hash(char * arr, int size)  
+	3. {  
+	4.     memset(visit, -1, sizeof visit); //visit数组是-1的时候代表这个字符没有在集合中  
+	5.     memset(dp, 0, sizeof dp);  
+	6.     maxlen = maxindex = 0;  
+	7.     dp[0] = 1;  
+	8.     visit[arr[0]] = 0;  
+	9.     for(int i = 1; i < size; ++i)  
+	10.     {  
+	11.         if(visit[arr[i]] == -1) //表示arr[i]这个字符以前不存在  
+	12.         {  
+	13.             dp[i] = dp[i-1] + 1;  
+	14.             visit[arr[i]] = i; /* 记录字符下标 */  
+	15.         }else  
+	16.         {  
+	17.             dp[i] = i - visit[arr[i]];  
+	18.         }  
+	19.         if(dp[i] > maxlen)  
+	20.         {  
+	21.             maxlen = dp[i];  
+	22.             maxindex = i + 1 - maxlen;  
+	23.         }  
+	24.     }  
+	25.     output(arr);  
+	26. }  
+
+
+
+
+DP + Hash优化方案
+写到这里，还是有些别扭，因为辅助的空间多了，是不是还能优化，仔细看DP最优子问题解的更新方程：
+
+1
+dp[i] = dp[i-1] + 1;
+
+dp[i-1]不就是更新dp[i]当前的最优解么？这与最大子数组和问题的优化几乎同出一辙，我们不需要O(n)的辅助空间去存储子问题的最优解，而只需O(1)的空间就可以了，至此，我们找到了时间复杂度O(N)，辅助空间为O(1)（一个额外变量与256大小的散列表）的算法，代码如下
+
+
+	1. /* LNRS dp + hash 优化 */  
+	2.   
+	3. void LNRS_dp_hash_impro(char * arr, int size)  
+	4.   
+	5. {  
+	6.     memset(visit, -1, sizeof visit);  
+	7.     maxlen = maxindex = 0;  
+	8.     visit[arr[0]] = 0;  
+	9.     int curlen = 1;  
+	10.     for(int i = 1; i < size; ++i)  
+	11.     {  
+	12.         if(visit[arr[i]] == -1)  
+	13.         {  
+	14.             ++curlen;  
+	15.             visit[arr[i]] = i; /* 记录字符下标 */  
+	16.         }else  
+	17.         {  
+	18.             curlen = i - visit[arr[i]];  
+	19.         }  
+	20.         if(curlen > maxlen)  
+	21.         {  
+	22.             maxlen = curlen;  
+	23.             maxindex = i + 1 - maxlen;  
+	24.         }  
+	25.     }  
+	26.     output(arr);  
+	27. }  
+
+
+
+======================================================================================================================
+
+Discussion
+This is another dynamic programming problem. When hearing the problem is finding longest substring satisfying some condition, think about dynamic programming.
+We define L[i] the length of longest substring without repeating characters ending at s[i]. Now, how we can calculate L[i] based on values of L[j] where j < i. Clearly, if s[i] does not appear in the longest substring ending at s[i-1], L[i] = L[i-1] + 1. Otherwise, assume last appearance of s[i] at j, then L[i] = i – j. Thus, we need to keep track the index of last appearance of all characters and can calculate L[i] based on L[i-1]
+
+The program runs in O(N) memory where N is the length of s and uses a constant memory to store the last appearance of characters.
+
+
+public static String find(String s){
+    if (s.length() &lt; 2){
+        return s;
+    }
+    char A = 'a';
+    char Z = 'z';
+    //store the last index a character appear
+    int[] lastIndex = new int[Z - A + 1];
+    for (int i = 0; i &lt; lastIndex.length; i++){
+        lastIndex[i] = -1;
+    }
+     
+    //lengthSubString[i] is the longest substring without repeating characters ending at s[i]
+    int[] lengthSubString = new int[s.length()];
+    lengthSubString[0] = 1;
+    lastIndex[s.charAt(0)-A] = 0;
+    for (int i = 1; i &lt; s.length(); i++){
+        int indexLastAppear = lastIndex[s.charAt(i) - A];
+        if(indexLastAppear &lt; i - lengthSubString[i-1]){
+            //char never appear before in the longest substring without repeating characters ending at s[i-1]
+            lengthSubString[i]= lengthSubString[i-1] + 1;
+        } else{
+            lengthSubString[i] = i - indexLastAppear;
+        }
+        //update indexLastAppear
+        lastIndex[s.charAt(i) - A] = i;
+    }
+     
+    int maxLength = Integer.MIN_VALUE;
+    int index = 0;
+    for (int i = 0; i &lt; lengthSubString.length; i++){ if (lengthSubString[i] &gt; maxLength){
+            maxLength = lengthSubString[i];
+            index = i;
+        }
+    }
+     
+    return s.substring(index - maxLength + 1, index + 1);
+}
+
+
+
+
+
+
+以下是A的solution：
+public int lengthOfLongestSubstring2(String s) {
+       int begin;
+       int i,j = 0;
+       int maxlen = 0;
+       int[] hash = new int [256];
+       int n = s.length();
+       for ( i =0; i< n; i++) {
+              Arrays. fill(hash, 0);
+              hash[ s.charAt( i)] = 1;
+             
+              for (j =i +1;j <n ;j ++) {
+                     if (hash [s .charAt(j )] == 0)
+                            hash[ s.charAt( j)] = 1;
+                     else break ;
+             }
+             
+              if (j -i >maxlen ) {
+                     maxlen = j- i;
+                     begin = i;
+             }
+       }
+       return maxlen;
+       
+    }

@@ -1,0 +1,101 @@
+Given a binary tree, check whether it is a mirror of itself (ie, symmetric around its center).
+For example, this binary tree is symmetric:
+    1   / \  2   2 / \ / \3  4 4  3
+But the following is not:
+    1
+   / \
+  2   2
+   \   \
+   3    3
+
+[解题思路]-myself
+
+	1. 按序遍历tree，将遍历结果保存起来
+	2. 递归交换树的左右子树，得到新的树
+	3. 继续遍历新的树，若遍历结果与1中结果相同，则是symmetric tree；否则不是
+
+思路2
+中序遍历tree，判断输出的序列是否首尾对称
+my solution:
+public class Solution {
+    public boolean isSymmetric(TreeNode root) {
+          ArrayList<Integer> data = new ArrayList<Integer>();
+          inorderTree(root,data);
+
+          return isSymmetricArray(data);
+      }   
+      public void inorderTree(TreeNode p, ArrayList<Integer> dt) {
+          if (p == null ) {
+              dt.add();
+              return
+          }
+          inorderTree (p.left, dt);
+          dt.add(p.val);
+          inorderTree(p.right, dt);
+      }
+      public boolean isSymmetricArray(ArrayList<Integer> dt) {
+          int size = dt.size();
+          for (int i=0;i<(size/2);i++) {
+              if (dt.get(i) != dt.get(size-1-i)) return false;
+          }
+        return true;
+
+      }
+}
+
+上面的思路还是错的：处理不了这种case： [1,2,3,3,null,2,null]
+
+
+[正确的思路] 
+重点是要学会，同时比较左右两棵子树，要深入理解递归和DFS算法
+This problem can be solve by using a simple recursion. The key is finding the conditions that return false, such as value is not equal, only one node(left or right) has value.
+public boolean isSymmetric(TreeNode root) {
+        if (root == null)
+                return true;
+        return isSymmetric(root.left, root.right);}
+ 
+public boolean isSymmetric(TreeNode l, TreeNode r) {
+        if (l == null && r == null) {
+                return true;
+        } else if (r == null || l == null) {
+                return false;
+        }
+ 
+        if (l.val != r.val)
+                return false;
+ 
+        if (!isSymmetric(l.left, r.right))
+                return false;
+        if (!isSymmetric(l.right, r.left))
+                return false;
+ 
+        return true;
+}
+
+
+迭代解法
+Iterative Solution
+/** * Definition for binary tree * public class TreeNode { *     int val; *     TreeNode left; *     TreeNode right; *     TreeNode(int x) { val = x; } * } */public class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        // Start typing your Java solution below
+        // DO NOT write main() function
+        if(root==null) return true;
+        LinkedList<TreeNode> l = new LinkedList<TreeNode>(),
+                            r = new LinkedList<TreeNode>();
+        l.add(root.left);
+        r.add(root.right);
+        while(!l.isEmpty() && !r.isEmpty()){
+            TreeNode temp1=l.poll(),
+                     temp2=r.poll();
+            if(temp1==null && temp2!=null || temp1!=null && temp2==null)
+                return false;
+            if(temp1!=null){
+                if(temp1.val!=temp2.val) return false;
+                l.add(temp1.left);
+                l.add(temp1.right);
+                r.add(temp2.right);
+                r.add(temp2.left);
+            }
+        }
+        return true;
+    }}

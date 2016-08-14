@@ -1,0 +1,99 @@
+Reverse a linked list from position m to n. Do it in-place and in one-pass.
+For example:
+Given 1->2->3->4->5->NULL, m = 2 and n = 4,
+return 1->4->3->2->5->NULL.
+
+Note:
+Given m, n satisfy the following condition:
+1 ≤ m ≤ n ≤ length of list.
+【my solution】
+实际上是对子串进行反转，只要保存子串第一个结点的前驱以及子串最后一个结点的后继，即可。
+
+/**
+* Definition for singly-linked list.
+* struct ListNode {
+*     int val;
+*     struct ListNode *next;
+* };
+*/
+struct ListNode* reverseBetween(struct ListNode* head, int m, int n) {
+    int i,j;
+    struct ListNode* left, *right, *tmp, *current;
+    struct ListNode* dummy = (struct ListNode*)malloc(sizeof(struct ListNode));
+    dummy->next=head;
+    left = right = dummy;
+    i = j = 0;
+    while(1) {
+         if (i<m-1) {
+              left = left->next;
+            i++;
+          }
+          if(j<n+1) {
+               right = right->next;
+               j++;
+               continue;
+          }
+          break;
+     }
+
+     current= left->next;
+     if(current!=right)//反转后第一个节点的后继要为NULL
+     {
+          tmp=current;
+          current=current->next;
+          tmp->next=right; //tmp->next = NULL;
+     }
+  
+     while(current!=right)
+     {
+          tmp=current;
+          current=current->next;
+          tmp->next=left->next;
+          left->next=tmp;
+     }
+     return dummy->next;           注：这里要return dummy->next  ，不是head
+}
+
+=============
+//struct ListNode* reverseList_method2(struct ListNode* Head)
+void reverseList_method2(struct ListNode* Head, struct ListNode* tail)  //non recur
+{
+     struct ListNode *current,*tmp;
+     current=Head->next;
+     if(current!=tail)//反转后第一个节点的后继要为NULL    current!=NULL
+     {
+          tmp=current;
+          current=current->next;
+          tmp->next=tail; //tmp->next = NULL;
+     }
+   
+     while(current!=tail)
+     {
+          tmp=current;
+          current=current->next;
+          tmp->next=Head->next;
+          Head->next=tmp;
+     }
+}
+struct ListNode* reverseBetween(struct ListNode* head, int m, int n) {
+    int i,j;
+    struct ListNode* left, *right;
+    struct ListNode* dummy = (struct ListNode*)malloc(sizeof(struct ListNode));
+    dummy->next = head;
+    left = right = dummy;
+    i = j = 0;
+    while(1) {
+         if (i<m-1) {
+              left = left->next;
+            i++;
+          }
+          if(j<n+1) {
+               right = right->next;
+               j++;
+               continue;
+          }
+          break;
+     }
+     reverseList_method2(left,right);
+     return dummy->next;
+}

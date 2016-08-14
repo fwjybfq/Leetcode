@@ -1,0 +1,112 @@
+Restore IP Addresses描述Given a string containing only digits, restore it by returning all possible valid IP address combinations.
+For example: Given "25525511135",
+return ["255.255.11.135", "255.255.111.35"]. (Order does not matter)
+分析
+必须要走到底部才能判断解是否合法，深搜。
+
+[分析]：这个深度优先搜索的过程值得认真思索，递归的深度为4，感觉有点像动态规划的思想
+代码
+// Restore IP Addresses// 时间复杂度O(n^4)，空间复杂度O(n)public class Solution {
+    public List<String> restoreIpAddresses(String s) {
+        List<String> result = new ArrayList<>();
+        List<String> ip = new ArrayList<>();; // 存放中间结果
+        dfs(s, ip, result, 0);
+        return result;
+    }
+
+    /**
+     * 解析字符串
+     * @param[in] s 字符串，输入数据
+     * @param[out] ip 存放中间结果
+     * @param[out] result 存放所有可能的IP地址
+     * @param[in] start 当前正在处理的 index
+     * @return 无
+     */
+    private static void dfs(String s, List<String> ip,
+                            List<String> result, int start) {
+        if (ip.size() == 4 && start == s.length()) {  // 找到一个合法解
+            result.add(ip.get(0) + '.' + ip.get(1) + '.' +
+                    ip.get(2) + '.' + ip.get(3));
+            return;
+        }
+
+        if (s.length() - start > (4 - ip.size()) * 3)
+            return;  // 剪枝
+        if (s.length() - start < (4 - ip.size()))
+            return;  // 剪枝
+
+        int num = 0;
+        for (int i = start; i < start + 3 && i < s.length(); i++) {
+            num = num * 10 + (s.charAt(i) - '0');
+
+            if (num < 0 || num > 255) continue;  // 剪枝
+
+            ip.add(s.substring(start, i + 1));
+            dfs(s, ip, result, i + 1);
+            ip.remove(ip.size() - 1);
+
+            if (num == 0) break;  // 不允许前缀0，但允许单个0
+        }
+    }
+
+    public static void main(String[] args) {
+        Solution s = new Solution();
+        s.restoreIpAddresses("1111");
+    }
+}
+
+
+
+package leetcode;
+import java.util.*;
+public class ResoreIpAddress {
+        public List<String> restoreIpAddresses(String s) {
+             List<String> result = new ArrayList<String>();
+             List<String> ip = new ArrayList<String>();
+             
+             dfs( s, ip, result,0);
+              return result;
+    }
+
+        public void dfs(String s, List<String> ip, List<String> result, int start)
+       {
+              if (s .length()==start && ip.size()==4) {
+                     result.add( ip.get(0)+ "." + ip .get(1)+"." + ip .get(2) + "." + ip.get(3));
+                     return;
+             }
+             
+              if ( (s .length() - start) > (4 - ip.size()) * 3)
+                     return;
+              if ( (s .length() - start) < (4 - ip.size()))
+                     return;
+              int num = 0;
+              for (int i = start ; i < start +3 && i<s.length(); i++) { // 这里的for循环可以理解为 对 ip地址A.B.C.D的一组内的数字进行循环，这个 dfs递归会进行四次。
+                     num = s.charAt( i) - '0'+ num*10;
+                    
+                     if (num > 255 || num < 0) return;//这里return应该也可以，因为 num > 255时，肯定已经是3位数了，不会再 for循环了
+                    
+                     ip.add(Integer. toString(num));
+                    
+                     dfs( s, ip, result, i+1);
+                    
+                     ip.remove( ip.size()-1); // remove 当前这个num，迭代下一个     
+                    
+                     if (num == 0) break; //这里return 应该也可以
+             }
+             
+       }
+        public static void main(String[] args) {
+              // TODO Auto-generated method stub
+             ResoreIpAddress ria = new ResoreIpAddress();
+             List<String> result = ria.restoreIpAddresses( "1043");
+              if (result != null){
+                     for (Iterator<String> i = result .iterator(); i.hasNext();){
+                           String sip = i.next();
+                           System. out.println(sip );
+                    }
+             }
+             
+       }
+
+}
+ 

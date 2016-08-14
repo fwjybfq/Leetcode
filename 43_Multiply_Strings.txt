@@ -1,0 +1,113 @@
+Given two numbers represented as strings, return multiplication of the numbers as a string.
+Note: The numbers can be arbitrarily large and are non-negative
+
+
+我们以289*785为例
+
+
+[解题报告] C++: 
+首先我们把每一位相乘，得到一个没有进位的临时结果，如图中中间的一行红色数字就是临时结果，然后把临时结果从低位起依次进位。对于一个m位整数乘以n位整数的结果，最多只有m+n位。         本文地址
+注意：结果中需要去掉前导0，还需要注意结果为0的情况
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+class Solution {
+public:
+    string multiply(string num1, string num2) {
+        int n1 = num1.size(), n2 = num2.size();
+        vector<int> tmpres(n1+n2, 0);
+        int k = n1 + n2 - 2;
+        for(int i = 0; i < n1; i++)
+            for(int j = 0; j < n2; j++)
+                tmpres[k-i-j] += (num1[i]-'0')*(num2[j]-'0');
+        int carryBit = 0;
+        for(int i = 0; i < n1+n2; i++)//处理进位
+        {
+            tmpres[i] += carryBit;
+            carryBit = tmpres[i] / 10;
+            tmpres[i] %= 10;
+        }
+        int i = k+1;
+        while(tmpres[i] == 0)i--;//去掉乘积的前导0
+        if(i < 0)return "0"; //注意乘积为0的特殊情况
+        string res;
+        for(; i >= 0; i--)
+            res.push_back(tmpres[i] + '0');
+        return res;
+    }
+};
+ 
+上述算法的复杂度为O（n^2）（假设整数长度为n）
+
+另外更高效的计算大整数乘法一般有：（1）karatsuba算法，复杂度为3nlog3≈3n1.585，可以参考百度百科、面试题——大整数乘法、乘法算法-Karatsuba算法。（2）基于FFT(快速傅里叶变换)的算法，复杂度为o(nlogn), 可以参考FFT, 卷积, 多项式乘法, 大整数乘法
+
+
+［解题报告］C
+总结：1 动态数组的创建，包括char 和 int 型
+           2 表达式计算时，数据类型是如何隐形转换的 ？ code 中，r_mul[i+j+1] += ((int)num1[i]-48)*((int)num2[j]-48); 若没有强制
+              类型转换，那么由于num1[i] num2[i]都是char类型，当r_mul[i+j+1]＋(num1[i]-48)*(num2[j]-48) 的和超过255时，数据会被截断，
+              只截取了低8位，作为结果，比如和是271 ，二进制表示为 1 0000 1111 ，最后结果却为15
+char* multiply(char* num1, char* num2) {
+int len1, len2;
+int *r_mul;
+char *result;
+int i, j;
+int carry;
+if (!num1 || !num2)
+return "";
+len1 = strlen(num1);
+len2 = strlen(num2);
+if ( (len1 == 1) && (num1[0] == '0')) return "0";
+if ( (len2 == 1) && (num2[0] == '0')) return "0";
+r_mul = (int *)malloc(sizeof(int) * (len1+len2));
+memset(r_mul, 0, sizeof(int) * (len1+len2));
+for( i=len1-1; i>=0; i-- )
+for (j=len2-1; j>=0; j--)
+{
+r_mul[i+j+1] += ((int)num1[i]-48)*((int)num2[j]-48);
+}
+carry = 0;
+for( i=len1+len2-1; i >= 0; i--)
+{
+r_mul[i] += carry;
+carry = r_mul[i] / 10;
+r_mul[i] = r_mul[i] % 10;
+}
+if (r_mul[0] == 0)
+{
+result = (char*)malloc(len1+len2);
+for(i=0; i< len1+len2-1; i++)
+result[i] = r_mul[i+1] + 48;
+} else {
+
+result = (char*)malloc(len1+len2+1);
+for(i=0; i< len1+len2; i++)
+result[i] = r_mul[i] + 48;
+}
+result[i] = '\0';
+free(r_mul);
+return result;
+}
+
